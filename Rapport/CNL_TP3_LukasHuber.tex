@@ -1,0 +1,185 @@
+\documentclass[a4paper,11pt]{article}
+% Page layout
+\usepackage{geometry}
+\usepackage{changepage}
+
+% Hyperlinks and refferences     
+\usepackage{url} 
+\usepackage{hyperref}
+%\usepackage{fullpage}
+\usepackage{booktabs}
+
+% Graphic packages
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{float} % Force positioning
+\usepackage{epstopdf}
+
+
+\usepackage{enumerate}
+%\usepackage{capt-of}
+\usepackage{lipsum}
+
+% Math packages
+\usepackage{mathtools}
+\usepackage{amsmath}
+
+% Use Matlab code in file
+\usepackage{listings} % Input of code
+\renewcommand{\lstlistingname}{Code}
+
+\usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+\usepackage{courier} % Font for code
+
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%\newcommand{\figpath}{./../fig/}
+
+% Define TitelT
+\title{Commande Non-Lin\'eaire \\ \small{TP3}}
+\author{Lukas Huber}
+%\date{\today}
+\date{Semestre d'hiver 2016}
+
+
+\begin{document}
+     
+%Layout options for Matlab - Code 
+\lstset{language=Matlab,
+  %basicstyle=\color{red},
+  frame=top,frame=bottom,             % line top and bottom
+  basicstyle=\small\ttfamily,         % text font
+  backgroundcolor=\color{backcolour}, 
+  breaklines=true,
+  linewidth = 15.9cm,                 % linewidth to fit matlab language
+  %xleftmargin= 0.001\textwidth, xrightmargin=.001\textwidth,
+  morekeywords={matlab},
+  keywordstyle=\color{blue},          % Define color for keyword
+  morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+  identifierstyle=\color{black},%
+  stringstyle=\color{mylilas},
+  commentstyle=\color{mygreen},         % Definecolors for comment
+  showstringspaces=false,%without this there will be a symbol in the places where there is a space
+  numbers=left,                        % Numeration of the lines at lsthe left
+  numberstyle={\tiny \color{black}},   % size of the numbers
+  numbersep=9pt, % this defines how far the numbers are from the text
+  emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+  %emph=[2]{word1,word2}, emphstyle=[2]{style},    
+}
+\maketitle
+
+\section{Syst\`eme}
+Le syst\`eme r\'e\'ecrit sout la forme d'une syst\`eme du premier ordre affine en entr\'ee est d\'ecrit dans l'\'equation suivante:
+\begin{align}
+  \dot x_1 &=  x_2 \\
+  \dot x_2 &= \frac{1}{I} (- M g L \sin(x_1) - k(x)(x_1 - x_3)) \\
+  \dot x_3 &=  x_4 \\
+  \dot x_4 &= \frac{1}{J}  k(x)(x_1 - x_3) + \frac{1}{J} u
+\end{align}
+avec $x_1 = q_1$ et $x_3 = q_2$. \\
+
+Pour simplifier les calculations, les equations suivant sont implementer comme fonction en Matlab:\\
+\textbf{Le Crochet de Lie}
+\begin{equation}
+  LieBr(f,g) = [f,g] = \frac{\partial g}{\partial x} f - \frac{\partial f}{\partial x}g
+\end{equation}
+\textbf{La Deriv\'ee de Lie}
+\begin{equation}
+  LieDer(f,v) = L_f v(x) =\frac{\partial v}{\partial x} f
+\end{equation}
+o\`u $\frac{\partial (\cdot)}{\partial x}$ sont de matrices Jacobiennes.\\
+
+\subsection{Accessibilit\'e et int\'egrabilit\'e}
+\subsubsection{Rang}
+Comme le rang de la matrix de commandabilit\'e C est \'egal \`a la dimension de la syst\`eme n :
+\[ n = \text{dim}(x) = 4 \quad \Leftrightarrow \quad \text{rang}(C) = 4 \]
+le syst\`eme est commandable. 
+
+\subsubsection{Involutivit\'e}
+Un des deux moyen pour v\'erifier l'int\'egrabilit\'e du syst\`eme est par tester la condition de Frobenius ($d\omega \wedge \omega = 0$). L'autre est indirecte (mais \'equivalent \`a la condition Frobenius), c'est l'involutivit\'e de la distribution $\bar C$:
+\begin{equation}
+0 = \det \begin{pmatrix} \bar C & \left[g, a d_f^{i}g \right]\end{pmatrix}) \quad \text{pour} \quad i \in \left[1, n-2 \right]
+\end{equation}
+Parce que on obtien pour le syst\`eme $\det(\cdot) = 0$ pour $i in \lbrace 1,2,3 \rbrace$, le syst\`eme est int\'egrable.
+
+\subsection{Sortie lin\'erisante (plate)}
+Avec la fonction de Matlab \textit{null()} le vector ligne $\omega$ pour annuler la matrice form\'e par les elements de $\bar C$:
+\[
+    \omega = \begin{bmatrix}1 & 0 & 0 & 0 \end{bmatrix}^T
+\]
+C'est une solution qui est rivialement int\'egrable l'\'equation
+\begin{equation}
+  \omega_1 = \mu \frac{\partial h}{\partial x_i}
+\end{equation}
+puisqu'elle conduit \`a
+\[
+h(x) = x_1
+\]
+
+La sortie plate du syst\`eme est obetnue lorsque on a que:
+\begin{equation}
+z = h(x)
+\end{equation}
+
+
+\subsection{Bouclage et stabilisation du syst\`eme}
+La proc\'edure conduit aux identit\'es suivantes:
+\begin{equation}
+  z_n = z^{(n-1)} = \Phi_{n}(x) = L_f^{n-1}h(x)
+\end{equation}
+et
+\begin{equation}
+  %  v = L_f^h(x) + L_g L_f^{n-1}h(x) u
+  u =\frac{1}{L_g L_f^{n-1} h(x)} \left(v(x) - L_f^n h(x) \right)
+\end{equation}
+
+Avec cette loi de bouclage lin\'eairisante, le r\'egulateur lin\'eaire sur le syst\'eme $v$ est dymensioner:
+\begin{equation}
+  v = -k^T z
+\end{equation}
+avec le gain de r\'egulation $k = \begin{bmatrix} 1 & 4 & 6 & 4 \end{bmatrix}$ pour obtenir tout les p\^oles \`a -1.
+\subsubsection{Condition Initial 1}
+Le syst\`eme en Figure \ref{fig:systemeBoulce1} est stable pour les condition initial (Tableau \ref{tab:systemBoucle1}). Dans la section pr\'ecedent, on a alors bien modeller le syst\`eme et les parameters k.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../CNL_TP3_systemeBoucle1.png}
+\caption{Syst\`eme Boucl\'e}
+\label{fig:systemeBoulce1}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l|c|c|c|c|c}
+    Parameters & Intertie Bras I & Inertie Axe J &  Rapel K & Masse M & Longueur L  \\     \hline
+    Valeur & 0.1 & 0.001 & 0.5 & 0.1 & 0.5
+  \end{tabular}
+  \caption{Param\`etre du syst\`eme boucl\'e}
+  \label{tab:systemBoucle1}
+\end{table}
+
+\subsubsection{Condition Initial 2}
+M\^eme avec des param\`etres differents (Figure \ref{fig:systemeBoulce2}) qui resolue dans des exitations des \'etats plus grand, on obtien tout les \'etats dans l'\'equilibre $x \to 0$ pour des temps grands ($t \to \infty$).
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{../CNL_TP3_systemeBoucle2.png}
+\caption{Syst\`eme Boucl\'e avec $I = 0.01$, $J=0.001$, $K = 5$, $M=0.1$ et $L=0.1$ }
+\label{fig:systemeBoulce2}
+\end{figure}
+
+
+
+
+\newpage
+\clearpage
+\appendix
+\maketitle
+\section{Matlab Code}
+\begin{adjustwidth}{-0.6cm}{0.6cm}
+\lstinputlisting[language=Matlab, caption=Code Mathlab utiliser pour l'exercise TP3]{../CNL_TP3_LukasHuber_v1.m}
+\end{adjustwidth}
+
+\end{document}
+
